@@ -9,6 +9,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.persistence.Lob;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,13 +18,18 @@ public class BlogController {
 
     private PostRepository postRepository;
 
-    public BlogController(PostRepository postRepository) {
+    private CategoryRepository categoryRepository;
+
+    public BlogController(PostRepository postRepository,CategoryRepository categoryRepository) {
         this.postRepository = postRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @RequestMapping("/")
     public String listPosts(ModelMap modelMap) {
         List<Post> posts = postRepository.findAll();
+        List<Category> categories = categoryRepository.findAll();
+        modelMap.put("categories",categories);
         modelMap.put("posts", posts);
         return "home";
     }
@@ -33,5 +39,16 @@ public class BlogController {
         Post post = postRepository.findById(id).orElse(null);
         modelMap.put("post", post);
         return "post-details";
+    }
+
+    @RequestMapping("/category/{id}")
+    public String categoryList(@PathVariable Long id,ModelMap modelMap){
+        Category category = categoryRepository.findById(id).orElse(null);
+        List<Post> posts = postRepository.findByCategory(category);
+        List<Category> categories = categoryRepository.findAll();
+        modelMap.put("categories",categories);
+        modelMap.put("category",category);
+        modelMap.put("posts",posts);
+        return "category-list";
     }
 }
